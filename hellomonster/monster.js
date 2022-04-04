@@ -31,8 +31,11 @@ const dbExec = (sql) => {
     return [{
         // User:efcd2a70-63a2-4ad3-a669-dcabc6238f2c
         // VXNlcjplZmNkMmE3MC02M2EyLTRhZDMtYTY2OS1kY2FiYzYyMzhmMmM=
-        id: 'VXNlcjplZmNkMmE3MC02M2EyLTRhZDMtYTY2OS1kY2FiYzYyMzhmMmM=', //base64 encoded global ID ("User:efcd2a70-63a2-4ad3-a669-dcabc6238f2c")
-        name: 'Test User'
+        //id: 'VXNlcjplZmNkMmE3MC02M2EyLTRhZDMtYTY2OS1kY2FiYzYyMzhmMmM=', //base64 encoded global ID ("User:efcd2a70-63a2-4ad3-a669-dcabc6238f2c")
+        id: 'efcd2a70-63a2-4ad3-a669-dcabc6238f2c',
+        name: 'Test User',
+        // resolveType: () => 'User',
+        // __type__:'User'
     }]
 }
 
@@ -44,23 +47,25 @@ const { nodeInterface, nodeField } = nodeDefinitions(
       const { type, id } = fromGlobalId(globalId)
 
       // pass the type name and other info. `joinMonster` will find the type from the name and write the SQL
-      return joinMonster.getNode(type, resolveInfo, context, id,//String(id), 
+      return joinMonster.getNode(type, resolveInfo, context, [id],//String(id), 
         async sql => dbExec(sql)
       )
     },
     // determines the type. Join Monster places that type onto the result object on the "__type__" property
-    obj => obj.__type__
+    obj => obj.__type__?.name
+    //obj => obj.__type__?.name
   )
 
   const User = new graphql.GraphQLObjectType({
     name: 'User',
+    //isTypeOf: ()=> 'User',
     sqlTable: 'public.user', 
     interfaces: [ nodeInterface ],
     description: 'User model',
     extensions: {
       joinMonster: {
         sqlTable: 'public.user',
-        uniqueKey: 'email'
+        uniqueKey: 'id'
       }
     },
     fields: () => {
